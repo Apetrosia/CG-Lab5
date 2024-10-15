@@ -28,7 +28,6 @@ namespace CG_Lab
             InitializeComponent();
             iterationsCounts = new int[] { 5, 5, 3, 5, 5, 5, 9, 3, 7, 12 };
             comboBox1.SelectedIndex = 0;
-            
         }
 
         private void LoadLSystem(string filePath)
