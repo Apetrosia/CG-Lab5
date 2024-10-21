@@ -51,13 +51,15 @@ namespace CG_Lab
 
         private void DrawBezierCurve(Graphics g)
         {
-            if (controlPoints.Count < 4)
-                return;
+            //if (controlPoints.Count < 4 || controlPoints.Count % 2 != 0)
+                //return;
 
             // Рисуем кривые Безье по группам из четырех точек
             for (int i = 0; i <= controlPoints.Count - 4; i += 3)
             {
-                PointF p0 = controlPoints[i ];
+                if (i + 3 > controlPoints.Count - 1)
+                    return;
+                PointF p0 = controlPoints[i];
                 PointF p1 = controlPoints[i + 1];
                 PointF p2 = controlPoints[i + 2];
                 PointF p3 = controlPoints[i + 3];
@@ -72,7 +74,6 @@ namespace CG_Lab
                 // Рисуем линии касательных для наглядности
                 g.DrawLine(Pens.Red, p0, p1);
                 g.DrawLine(Pens.Red, p2, p3);
-               
             }
         }
 
@@ -94,9 +95,10 @@ namespace CG_Lab
 
         private void DrawControlPoints(Graphics g)
         {
-            foreach (var point in controlPoints)
+            for (int i = 0; i < controlPoints.Count; i++)
             {
-                g.FillEllipse(Brushes.IndianRed, point.X - 5, point.Y - 5, 7, 7   );
+                //if (controlPoints.Count == 4 || i < 3 || i % 2 == 0 || i == controlPoints.Count - 1 || i == controlPoints.Count - 2)
+                g.FillEllipse(Brushes.IndianRed, controlPoints[i].X - 5, controlPoints[i].Y - 5, 7, 7);
             }
         }
 
@@ -116,25 +118,29 @@ namespace CG_Lab
 
                 PointF newPoint = new PointF(e.X, e.Y);
 
+                ///*
                 // Если точек достаточно для новой кривой, добавить промежуточную точку для плавного соединения
-                if (controlPoints.Count >= 4 && (controlPoints.Count - 1) % 3 == 0)
+                if (controlPoints.Count > 4 && (controlPoints.Count + 1) % 3 == 0) //(controlPoints.Count == 5 || controlPoints.Count > 5 && controlPoints.Count % 2 == 0))
                 {
-                    PointF lastPoint = controlPoints[controlPoints.Count - 1];
-                    PointF prevPoint = controlPoints[controlPoints.Count - 2];
+
+                    ///*
+                    PointF lastPoint = controlPoints[controlPoints.Count - 2];
+                    PointF prevPoint = controlPoints[controlPoints.Count - 3];
 
                     // Отражаем последнюю точку относительно предпоследней
-                    PointF reflectedPoint = new PointF(2 * lastPoint.X - prevPoint.X, 2 * lastPoint.Y - prevPoint.Y);
+                    PointF reflectedPoint = new PointF(lastPoint.X / 2 + prevPoint.X / 2, lastPoint.Y / 2 + prevPoint.Y / 2);
 
-                    // Добавляем отраженную точку как новую контрольную
-                    controlPoints.Add( reflectedPoint);
-
+                    // Добавляем отраженную точку как новую контрольну
+                    controlPoints.Insert(controlPoints.Count - 2, reflectedPoint);
+                    //*/
                 }
+                //*/
 
                 // Добавляем новую точку
                 controlPoints.Add(newPoint);
                 selectedPointIndex = -1;
                 pictureBox1.Invalidate();
-                pictureBox1.Refresh();// Перерисовать PictureBox
+                //pictureBox1.Refresh();// Перерисовать PictureBox
             }
             else if (e.Button == MouseButtons.Right)
             {
@@ -150,14 +156,36 @@ namespace CG_Lab
                 }
             }
         }
-       
 
         private void PictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             if (selectedPointIndex >= 0 && e.Button == MouseButtons.Left)
             {
-                // Перемещаем выбранную точку
+                PointF deltaPoint = new PointF(e.X - controlPoints[selectedPointIndex].X, e.Y - controlPoints[selectedPointIndex].Y);
                 controlPoints[selectedPointIndex] = new PointF(e.X, e.Y);
+
+                if (selectedPointIndex > 0 && selectedPointIndex < controlPoints.Count - 1)
+                {
+                    // Перемещаем выбранную точку
+                    if (selectedPointIndex % 3 == 0)
+                    {
+                        if (selectedPointIndex >= 3)
+                            controlPoints[selectedPointIndex - 1] = new PointF(controlPoints[selectedPointIndex - 1].X + deltaPoint.X,
+                                controlPoints[selectedPointIndex - 1].Y + deltaPoint.Y);
+                        if (selectedPointIndex < controlPoints.Count - 1)
+                            controlPoints[selectedPointIndex + 1] = new PointF(controlPoints[selectedPointIndex + 1].X + deltaPoint.X,
+                                controlPoints[selectedPointIndex + 1].Y + deltaPoint.Y);
+                    }
+                    else if (selectedPointIndex % 3 == 2)
+                    {
+                        if (selectedPointIndex < controlPoints.Count - 2)
+                            controlPoints[selectedPointIndex + 2] = new PointF(controlPoints[selectedPointIndex + 2].X - deltaPoint.X,
+                            controlPoints[selectedPointIndex + 2].Y - deltaPoint.Y);
+                    }
+                    else if (selectedPointIndex > 1)
+                        controlPoints[selectedPointIndex - 2] = new PointF(controlPoints[selectedPointIndex - 2].X - deltaPoint.X,
+                        controlPoints[selectedPointIndex - 2].Y - deltaPoint.Y);
+                }
                 pictureBox1.Invalidate(); // Перерисовать PictureBox
             }
         }
