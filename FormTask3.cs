@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace CG_Lab
@@ -98,7 +99,10 @@ namespace CG_Lab
             for (int i = 0; i < controlPoints.Count; i++)
             {
                 //if (controlPoints.Count == 4 || i < 3 || i % 2 == 0 || i == controlPoints.Count - 1 || i == controlPoints.Count - 2)
-                g.FillEllipse(Brushes.IndianRed, controlPoints[i].X - 5, controlPoints[i].Y - 5, 7, 7);
+                if (IsAuxiliaryPoint(i))
+                    g.FillEllipse(Brushes.Indigo, controlPoints[i].X - 5, controlPoints[i].Y - 5, 7, 7);
+                else
+                    g.FillEllipse(Brushes.IndianRed, controlPoints[i].X - 5, controlPoints[i].Y - 5, 7, 7);
             }
         }
 
@@ -147,9 +151,19 @@ namespace CG_Lab
                 // Удаление ближайшей точки, если она существует
                 for (int i = 0; i < controlPoints.Count; i++)
                 {
-                    if (Math.Abs(e.X - controlPoints[i].X) < 5 && Math.Abs(e.Y - controlPoints[i].Y) < 5)
+                    if (!IsAuxiliaryPoint(i) && Math.Abs(e.X - controlPoints[i].X) < 5 && Math.Abs(e.Y - controlPoints[i].Y) < 5)
                     {
-                        controlPoints.RemoveAt(i);
+                        List<int> toRemove = new List<int>();
+                        for (int j = 0; j < controlPoints.Count(); j++)
+                        {
+                            if (IsAuxiliaryPoint(j))
+                                toRemove.Add(j);
+                        }
+                        toRemove.Add(i);
+                        toRemove.Sort();
+                        for (int j = 0; j < toRemove.Count(); j++)
+                            controlPoints.RemoveAt(toRemove[j] - j);
+                        BuildAuxiliaryPoint();
                         pictureBox1.Invalidate();
                         break;
                     }
@@ -190,16 +204,32 @@ namespace CG_Lab
             }
         }
 
+        private bool IsAuxiliaryPoint(int index)
+        {
+            if (controlPoints.Count <= 5)
+                return false;
+            if (index >= 3 && index < controlPoints.Count - 2 && index % 3 == 0)
+                return true;
+            return false;
+        }
+
+        private void BuildAuxiliaryPoint()
+        {
+            if (controlPoints.Count() == 5)
+                return;
+            for (int i = 3; i < controlPoints.Count - 1; i += 4)
+                controlPoints.Insert(i, new PointF(controlPoints[i].X / 2 + controlPoints[i - 1].X / 2,
+                    controlPoints[i].Y / 2 + controlPoints[i - 1].Y / 2));
+        }
+
         private void FormTask3_Resize(object sender, EventArgs e)
         {
             pictureBox1.Size = ClientSize;
-
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             controlPoints.Clear();
-
             pictureBox1.Invalidate();
         }
     }
