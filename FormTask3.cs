@@ -154,14 +154,14 @@ namespace CG_Lab
                     if (!IsAuxiliaryPoint(i) && Math.Abs(e.X - controlPoints[i].X) < 5 && Math.Abs(e.Y - controlPoints[i].Y) < 5)
                     {
                         List<int> toRemove = new List<int>();
-                        for (int j = 0; j < controlPoints.Count(); j++)
+                        for (int j = 0; j < controlPoints.Count; j++)
                         {
                             if (IsAuxiliaryPoint(j))
                                 toRemove.Add(j);
                         }
                         toRemove.Add(i);
                         toRemove.Sort();
-                        for (int j = 0; j < toRemove.Count(); j++)
+                        for (int j = 0; j < toRemove.Count; j++)
                             controlPoints.RemoveAt(toRemove[j] - j);
                         BuildAuxiliaryPoint();
                         pictureBox1.Invalidate();
@@ -186,7 +186,7 @@ namespace CG_Lab
                         if (selectedPointIndex >= 3)
                             controlPoints[selectedPointIndex - 1] = new PointF(controlPoints[selectedPointIndex - 1].X + deltaPoint.X,
                                 controlPoints[selectedPointIndex - 1].Y + deltaPoint.Y);
-                        if (selectedPointIndex < controlPoints.Count - 1)
+                        if (selectedPointIndex < controlPoints.Count - 2)
                             controlPoints[selectedPointIndex + 1] = new PointF(controlPoints[selectedPointIndex + 1].X + deltaPoint.X,
                                 controlPoints[selectedPointIndex + 1].Y + deltaPoint.Y);
                     }
@@ -215,11 +215,20 @@ namespace CG_Lab
 
         private void BuildAuxiliaryPoint()
         {
-            if (controlPoints.Count() == 5)
+            if (controlPoints.Count <= 5)
                 return;
-            for (int i = 3; i < controlPoints.Count - 1; i += 4)
-                controlPoints.Insert(i, new PointF(controlPoints[i].X / 2 + controlPoints[i - 1].X / 2,
-                    controlPoints[i].Y / 2 + controlPoints[i - 1].Y / 2));
+            for (int i = 3; i <= controlPoints.Count; i += 3)
+            {
+                if (i == controlPoints.Count)
+                {
+                    if (i % 3 == 0)
+                        controlPoints.Insert(i - 1, new PointF(controlPoints[i - 1].X / 2 + controlPoints[i - 2].X / 2,
+                            controlPoints[i - 1].Y / 2 + controlPoints[i - 2].Y / 2));
+                }
+                else if (i != controlPoints.Count - 1)
+                    controlPoints.Insert(i, new PointF(controlPoints[i].X / 2 + controlPoints[i - 1].X / 2,
+                        controlPoints[i].Y / 2 + controlPoints[i - 1].Y / 2));
+            }
         }
 
         private void FormTask3_Resize(object sender, EventArgs e)
